@@ -1,0 +1,31 @@
+{% extends 'dashboard_layout.html' %}
+
+{% block title %}Riwayat Blockchain{% endblock %}
+
+{% block dashboard_content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Riwayat Blok Tercatat</h1>
+            <p class="text-muted mb-0">Berikut adalah daftar semua blok yang telah tercatat di blockchain (tampilan terbatas).</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="list-group list-group-flush">
+                {% if chain %}
+                    {% for block in chain | reverse %}
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="me-2">Blok #{{ block.index }}</strong>
+                        </div>
+                        <span class="badge bg-secondary rounded-pill">{{ block.timestamp | strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info mb-0">Belum ada blok yang dibuat dalam blockchain.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

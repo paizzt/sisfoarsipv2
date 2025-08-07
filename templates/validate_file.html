@@ -1,0 +1,55 @@
+{% extends 'dashboard_layout.html' %}
+
+{% block title %}Validasi Integritas File{% endblock %}
+
+{% block dashboard_content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Validasi Integritas File</h1>
+            <p class="text-muted mb-0">Unggah sebuah file untuk memeriksa apakah catatan validnya ada di dalam blockchain.</p>
+        </div>
+    </div>
+
+    <!-- Formulir Upload untuk Validasi -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="input-group">
+                    <input type="file" class="form-control form-control-lg" name="file_to_validate" required>
+                    <button class="btn btn-primary" type="submit">Validasi File</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Area Hasil Validasi -->
+    {% if validation_result %}
+    <div class="card shadow-sm border-0">
+        <div class="card-header">
+            Hasil Validasi untuk File: <strong>{{ validation_result.filename }}</strong>
+        </div>
+        <div class="card-body">
+            {% if validation_result.is_valid %}
+                <div class="alert alert-success">
+                    <h4 class="alert-heading">✅ File Valid!</h4>
+                    <p>Catatan untuk file dengan konten yang identik ditemukan di dalam blockchain.</p>
+                    <hr>
+                    <p class="mb-0"><strong>Ditemukan di Blok:</strong> #{{ validation_result.block_index }}</p>
+                    <p class="mb-0"><strong>Diunggah oleh:</strong> {{ validation_result.uploader_email }}</p>
+                    <p class="mb-0"><strong>Folder:</strong> {{ validation_result.folder }}</p>
+                    <p class="mb-0"><strong>Waktu Dicatat:</strong> {{ validation_result.timestamp | strftime('%Y-%m-%d %H:%M:%S') }} UTC</p>
+                </div>
+            {% else %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">❌ File Tidak Valid!</h4>
+                    <p class="mb-0">Tidak ada catatan untuk file dengan nama dan konten yang identik di dalam blockchain.</p>
+                </div>
+            {% endif %}
+            <div class="mt-3">
+                <p class="mb-1"><strong>Hash SHA-256 file yang Anda unggah:</strong></p>
+                <code class="text-muted" style="word-break: break-all;">{{ validation_result.file_hash }}</code>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

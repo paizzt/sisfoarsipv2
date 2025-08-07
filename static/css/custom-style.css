@@ -1,0 +1,238 @@
+:root {
+    --bs-primary: #4A7AFF;
+    --bs-primary-rgb: 74, 122, 255;
+    --bs-link-color: #4A7AFF;
+    --bs-link-hover-color: #3b62cc;
+
+    /* Variabel Warna Baru untuk Sidebar Gelap */
+    --sidebar-bg: #111827; /* Abu-abu gelap kebiruan */
+    --sidebar-text: #9CA3AF; /* Abu-abu terang untuk teks */
+    --sidebar-active-text: #FFFFFF; /* Putih untuk teks aktif/hover */
+    --sidebar-hover-bg: #1F2937; /* Warna latar hover */
+    --sidebar-brand-text: #FFFFFF; /* Putih untuk judul brand */
+    --sidebar-border-color: #374151; /* Warna border di dalam sidebar */
+    
+    --body-bg: #f4f7fa; /* Warna latar konten utama (tetap) */
+    --border-color: #e9ecef;
+}
+
+/* Layout Dashboard Modern */
+.dashboard-body-modern {
+    background-color: var(--body-bg);
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-modern {
+    width: 260px;
+    background: var(--sidebar-bg); /* Menerapkan latar gelap */
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px 0 rgba(0,0,0,.1); /* Bayangan yang lebih jelas */
+    transition: all 0.3s;
+}
+
+.sidebar-header-modern {
+    padding: 0 0.5rem 1.5rem 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--sidebar-border-color); /* Border gelap */
+}
+
+.sidebar-brand-modern {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--sidebar-brand-text); /* Teks putih */
+}
+
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.sidebar-profile .profile-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+    color: var(--sidebar-text);
+}
+
+.sidebar-profile .profile-name {
+    font-weight: 600;
+    color: var(--sidebar-brand-text); /* Teks putih */
+    display: block;
+}
+
+.sidebar-modern .components {
+    flex-grow: 1;
+}
+
+.sidebar-modern .list-unstyled a {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    font-weight: 500;
+    color: var(--sidebar-text); /* Teks abu-abu terang */
+    border-radius: 0.5rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s;
+}
+
+.sidebar-modern .list-unstyled a:hover {
+    background-color: var(--sidebar-hover-bg); /* Latar hover gelap */
+    color: var(--sidebar-active-text); /* Teks putih saat hover */
+}
+
+.sidebar-modern .list-unstyled a.active {
+    background-color: var(--bs-primary); /* Warna biru primer saat aktif */
+    color: #fff;
+    box-shadow: 0 7px 10px -5px rgba(var(--bs-primary-rgb), 0.4);
+}
+
+.logout-link {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--sidebar-border-color); /* Border gelap */
+}
+
+.main-content-modern {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+}
+
+.header-modern {
+    background: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color); /* Border pemisah header */
+}
+
+.header-modern .breadcrumb {
+    font-size: 0.9rem;
+}
+
+.content-area {
+    min-height: calc(100vh - 70px); /* Tinggi header */
+}
+
+/* Penyesuaian lain agar sesuai desain */
+.card {
+    border: none;
+    box-shadow: 0 0 30px 0 rgba(82,63,105,.05);
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table thead th {
+    border: none !important;
+}
+
+.table tbody tr {
+    background-color: #fff;
+    box-shadow: 0 0 20px 0 rgba(82,63,105,.04);
+}
+
+.table tbody td, .table tbody th {
+    border: none !important;
+    vertical-align: middle;
+}
+
+.table tbody tr th:first-child {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+.table tbody tr td:last-child {
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #0d1a2d; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+    pointer-events: all;
+}
+
+.splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none; 
+}
+
+/* --- Custom Toggle Switch --- */
+.toggle-switch {
+    display: flex;
+    border: 2px solid #14B8A6;
+    border-radius: 9999px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.toggle-switch input[type="radio"] {
+    display: none;
+}
+
+.toggle-switch label {
+    padding: 0.6rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    color: #14B8A6;
+    font-weight: 600;
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.toggle-switch input[type="radio"]:checked + label {
+    background-color: #14B8A6;
+    color: white;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.sidebar-profile .profile-role {
+    color: rgba(255, 255, 255, 0.75) !important; /* Warna putih dengan sedikit transparansi */
+    font-weight: 500;
+}
+/* --- Gaya untuk Tata Letak Full-Screen di Index --- */
+
+/* Memastikan semua elemen induk memenuhi tinggi layar */
+
+/* Wadah utama yang akan menjadi flex container */
+.full-screen-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Menengahkan konten secara vertikal */
+    align-items: center;     /* Menengahkan konten secara horizontal */
+    min-height: 100vh;       /* Tinggi minimum adalah 100% dari tinggi viewport */
+    padding: 2rem;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Gaya untuk menempatkan footer di bagian bawah */
+.footer-bottom {
+    position: absolute;
+    bottom: 20px;
+    font-size: 0.8rem;
+    color: #6c757d; /* Warna text-muted Bootstrap */
+}
+
+/* Menghapus gaya highlight-text yang mungkin sudah ada */
+.highlight-text {
+    color: var(--bs-primary); /* Menggunakan warna primer dari variabel Anda */
+}

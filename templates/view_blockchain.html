@@ -1,0 +1,35 @@
+{% extends 'dashboard_layout.html' %}
+
+{% block title %}Tampilan Blockchain{% endblock %}
+
+{% block dashboard_content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Tampilan Blockchain</h1>
+            <p class="text-muted mb-0">Setiap blok mewakili sebuah catatan transaksi. Klik pada sebuah blok untuk melihat isi lengkapnya.</p>
+        </div>
+    </div>
+
+    <div class="accordion" id="blockchainAccordion">
+        {% if chain %}
+            {% for block in chain | reverse %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ block.index }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ block.index }}">
+                        <strong class="me-2">Blok #{{ block.index }}</strong>
+                        <span class="text-muted small">(Timestamp: {{ block.timestamp | strftime('%Y-%m-%d %H:%M:%S') }})</span>
+                    </button>
+                </h2>
+                <div id="collapse-{{ block.index }}" class="accordion-collapse collapse" data-bs-parent="#blockchainAccordion">
+                    <div class="accordion-body">
+                        <h5 class="mb-3">Data Lengkap Blok:</h5>
+                        <pre class="bg-dark text-white p-3 rounded"><code>{{ block | tojson(indent=4) }}</code></pre>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">Belum ada blok yang dibuat dalam blockchain.</div>
+        {% endif %}
+    </div>
+{% endblock %}

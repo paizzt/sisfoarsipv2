@@ -1,0 +1,37 @@
+{% extends 'dashboard_layout.html' %}
+{% block title %}Edit Akses{% endblock %}
+
+{% block dashboard_content %}
+    <h1 class="h2 fw-bold mb-4">Edit Akses untuk {{ item_type|capitalize }}: {{ item_name }}</h1>
+    <p class="text-muted mb-4">Pilih dosen mana saja yang diizinkan untuk mengakses item ini.</p>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('save_access') }}">
+                <input type="hidden" name="item_type" value="{{ item_type }}">
+                <input type="hidden" name="item_name" value="{{ item_name }}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Pilih Dosen yang Diberi Akses:</label>
+                    {% if all_dosen %}
+                        {% for dosen in all_dosen %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="allowed_dosen" value="{{ dosen.email }}" id="dosen-{{ loop.index }}"
+                                {% if dosen.email in current_access %} checked {% endif %}>
+                            <label class="form-check-label" for="dosen-{{ loop.index }}">
+                                {{ dosen.email }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Tidak ada pengguna dengan peran Dosen yang terdaftar.</p>
+                    {% endif %}
+                </div>
+
+                <hr>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                <a href="{{ url_for('manage_access') }}" class="btn btn-secondary">Batal</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}

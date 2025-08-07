@@ -1,0 +1,156 @@
+{% extends 'dashboard_layout.html' %}
+
+{% block title %}Upload File Arsip{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title text-center fw-bold mb-4">Upload File Arsip</h2>
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    
+                    <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
+                        <h5 class="fw-bold pb-2 mb-0">1. Informasi Folder</h5>
+                        <button type="button" class="btn btn-sm btn-outline-success mb-2" id="toggleNewFolderBtn">
+                            Buat Folder Baru
+                        </button>
+                    </div>
+
+                    <input type="hidden" name="folder_name" id="final_folder_name">
+                    <input type="hidden" name="is_new_folder" id="is_new_folder_input" value="false">
+
+                    <div class="mb-3" id="selectFolderContainer">
+                        <label for="folder_select" class="form-label">Pilih Folder Tujuan</label>
+                        <select class="form-select" id="folder_select">
+                            <option value="">-- Pilih dari yang Sudah Ada --</option>
+                            {% if existing_folders %}{% for folder in existing_folders %}<option value="{{ folder }}">{{ folder }}</option>{% endfor %}{% endif %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 p-3 border rounded bg-light" id="newFolderContainer" style="display: none;">
+                        <label for="new_folder_name_input" class="form-label fw-bold">Nama Folder Baru</label>
+                        <input type="text" class="form-control mb-3" id="new_folder_name_input" placeholder="Contoh: Surat Undangan 2024">
+                        
+                        <label class="form-label fw-bold">Hak Akses Folder</label>
+                        <div class="toggle-switch">
+                            <input type="radio" id="folder_access_publik" name="folder_access" value="publik" checked>
+                            <label for="folder_access_publik">Publik</label>
+                            <input type="radio" id="folder_access_privat" name="folder_access" value="privat">
+                            <label for="folder_access_privat">Privat</label>
+                        </div>
+                        <div class="card p-3 my-3" id="folderDosenChecklist" style="display: none;">
+                            <label class="form-label fw-bold">Pilih Dosen (Akses Folder):</label>
+                            {% for dosen in dosen_list %}<div class="form-check"><input class="form-check-input" type="checkbox" name="allowed_dosen_folder" value="{{ dosen.email }}"><label class="form-check-label">{{ dosen.email }}</label></div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">2. Detail File</h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Jenis Surat</label>
+                        <div class="toggle-switch">
+                            <input type="radio" id="surat_masuk" name="letter_type" value="surat_masuk" checked>
+                            <label for="surat_masuk">Surat Masuk</label>
+                            <input type="radio" id="surat_keluar" name="letter_type" value="surat_keluar">
+                            <label for="surat_keluar">Surat Keluar</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hak Akses File</label>
+                        <div class="toggle-switch">
+                            <input type="radio" id="file_access_publik" name="file_access" value="publik" checked>
+                            <label for="file_access_publik">Publik</label>
+                            <input type="radio" id="file_access_privat" name="file_access" value="privat">
+                            <label for="file_access_privat">Privat</label>
+                        </div>
+                    </div>
+                    <div class="card p-3 mb-3" id="fileDosenChecklist" style="display: none;">
+                        <label class="form-label fw-bold">Pilih Dosen (Akses File):</label>
+                        {% for dosen in dosen_list %}<div class="form-check"><input class="form-check-input" type="checkbox" name="allowed_dosen_file" value="{{ dosen.email }}"><label class="form-check-label">{{ dosen.email }}</label></div>{% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="file" class="form-label fw-bold">Pilih File untuk Diunggah</label>
+                        <input class="form-control" type="file" id="file" name="file" required>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Upload dan Catat ke Blockchain</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === ELEMEN-ELEMEN ===
+    const uploadForm = document.getElementById('uploadForm');
+    const toggleNewFolderBtn = document.getElementById('toggleNewFolderBtn');
+    const selectFolderContainer = document.getElementById('selectFolderContainer');
+    const newFolderContainer = document.getElementById('newFolderContainer');
+    const folderDosenChecklist = document.getElementById('folderDosenChecklist');
+    const fileDosenChecklist = document.getElementById('fileDosenChecklist');
+    
+    // === FUNGSI-FUNGSI UTAMA ===
+
+    // Fungsi untuk tombol "Buat Folder Baru"
+    toggleNewFolderBtn.addEventListener('click', function() {
+        const isNewFolderMode = newFolderContainer.style.display === 'block';
+        if (isNewFolderMode) {
+            newFolderContainer.style.display = 'none';
+            selectFolderContainer.style.display = 'block';
+            toggleNewFolderBtn.textContent = 'Buat Folder Baru';
+            document.getElementById('is_new_folder_input').value = 'false';
+        } else {
+            newFolderContainer.style.display = 'block';
+            selectFolderContainer.style.display = 'none';
+            toggleNewFolderBtn.textContent = 'Pilih Folder yang Ada';
+            document.getElementById('is_new_folder_input').value = 'true';
+        }
+    });
+
+    // Fungsi untuk Checklist Dosen pada Hak Akses FILE
+    document.getElementById('file_access_privat').addEventListener('click', function() {
+        fileDosenChecklist.style.display = 'block';
+    });
+    document.getElementById('file_access_publik').addEventListener('click', function() {
+        fileDosenChecklist.style.display = 'none';
+    });
+    
+    // Fungsi untuk Checklist Dosen pada Hak Akses FOLDER
+    document.getElementById('folder_access_privat').addEventListener('click', function() {
+        folderDosenChecklist.style.display = 'block';
+    });
+    document.getElementById('folder_access_publik').addEventListener('click', function() {
+        folderDosenChecklist.style.display = 'none';
+    });
+
+
+    // === FUNGSI SAAT SUBMIT FORM (SANGAT PENTING) ===
+    uploadForm.addEventListener('submit', function(e) {
+        // 1. Tentukan nama folder final
+        const isNewFolder = document.getElementById('is_new_folder_input').value === 'true';
+        const folderValue = isNewFolder 
+            ? document.getElementById('new_folder_name_input').value.trim()
+            : document.getElementById('folder_select').value;
+        
+        // 2. Isi input tersembunyi dengan nilai yang benar
+        document.getElementById('final_folder_name').value = folderValue;
+
+        // 3. Lakukan validasi
+        if (!folderValue) {
+            alert('Silakan pilih folder tujuan atau isi nama folder baru.');
+            e.preventDefault(); // Hentikan submit
+            return;
+        }
+
+        // 4. Tampilkan loading modal jika valid
+        const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        loadingModal.show();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'dashboard_layout.html' %}
+
+{% block title %}Isi Folder: {{ folder_name }}{% endblock %}
+
+{% block dashboard_content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Isi Folder: <span class="text-primary">{{ folder_name }}</span></h1>
+            <p class="text-muted mb-0">Berikut adalah daftar file yang bisa Anda akses di dalam folder ini.</p>
+        </div>
+        <a href="{{ url_for('view_folders') }}" class="btn btn-secondary">← Kembali ke Daftar Folder</a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nama File</th>
+                            <th scope="col">Jenis Surat</th>
+                            <th scope="col">Pengunggah</th>
+                            <th scope="col">Waktu Unggah (UTC)</th>
+                            <th scope="col" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if files %}
+                            {% for file in files %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ file.filename }}</td>
+                                <td>
+                                    {% if file.letter_type == 'surat_masuk' %}
+                                        <span class="badge bg-primary">Surat Masuk</span>
+                                    {% elif file.letter_type == 'surat_keluar' %}
+                                        <span class="badge bg-success">Surat Keluar</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ file.letter_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ file.uploader_email }}</td>
+                                <td>{{ file.timestamp | strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('view_file', filepath=file.file_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill me-1" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>
+                                        Lihat
+                                    </a>
+                                    <a href="{{ url_for('download_file', filepath=file.file_path) }}" class="btn btn-sm btn-outline-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-1" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+                                        Download
+                                    </a>
+                                    {% if session.role == 'mahasiswa' and session.email == file.uploader_email %}
+                                    <a href="{{ url_for('mahasiswa_edit_access', filename=file.filename) }}" class="btn btn-sm btn-outline-warning">
+                                        Edit Akses
+                                    </a>
+                                    {% endif %}
+                                    {% if session.role == 'admin' %}
+                                    <a href="{{ url_for('move_to_trash', item_type='file', item_name=file.filename) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Anda yakin ingin memindahkan file ini ke sampah?')">
+                                        Hapus
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Folder ini tidak berisi file yang dapat Anda akses atau masih kosong.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

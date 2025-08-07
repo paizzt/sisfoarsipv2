@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+
+{% block title %}Upload Surat Mahasiswa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title text-center fw-bold mb-4">Upload Surat</h2>
+                <p class="text-center text-muted mb-4">Sebagai mahasiswa, Anda hanya bisa mengunggah file ke folder yang sudah ada dan file akan otomatis ditandai sebagai "Surat Masuk".</p>
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">1. Pilih Folder Tujuan</h5>
+                    <div class="mb-3">
+                        <select class="form-select" id="folder_select" name="folder_name" required>
+                            <option value="" disabled selected>-- Wajib Pilih Folder --</option>
+                            {% if existing_folders %}
+                                {% for folder in existing_folders %}
+                                    <option value="{{ folder }}">{{ folder }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" disabled>Belum ada folder yang dibuat oleh Admin.</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">2. Detail File</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Jenis Surat</label>
+                        <p><span class="badge bg-primary fs-6">Surat Masuk</span></p>
+                        <input type="hidden" name="letter_type" value="surat_masuk">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hak Akses File</label>
+                         <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="access_level" id="accessPublik" value="publik" checked>
+                                <label class="form-check-label" for="accessPublik">Publik</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="access_level" id="accessPrivat" value="privat">
+                                <label class="form-check-label" for="accessPrivat">Privat</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-3 mb-3" id="dosenChecklistContainer" style="display: none;">
+                        <label class="form-label fw-bold">Pilih Dosen yang Diberi Akses:</label>
+                        {% if dosen_list %}
+                            {% for dosen in dosen_list %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allowed_dosen" value="{{ dosen.email }}" id="dosen-{{ loop.index }}">
+                                <label class="form-check-label" for="dosen-{{ loop.index }}">{{ dosen.email }}</label>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">Tidak ada pengguna dengan peran Dosen yang terdaftar.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="file" class="form-label fw-bold">Pilih File untuk Diunggah</label>
+                        <input class="form-control" type="file" id="file" name="file" required>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Upload dan Catat ke Blockchain</button>
+                    </div>
+                </form>
+                <div class="text-center mt-4">
+                    <p><a href="{{ url_for('mahasiswa_dashboard') }}" class="text-muted small">← Kembali ke Dashboard</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadForm = document.getElementById('uploadForm');
+        const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        const dosenChecklistContainer = document.getElementById('dosenChecklistContainer');
+        const folderSelect = document.getElementById('folder_select');
+
+        // Tampilkan/sembunyikan checklist dosen
+        document.querySelectorAll('input[name="access_level"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'privat') {
+                    dosenChecklistContainer.style.display = 'block';
+                } else {
+                    dosenChecklistContainer.style.display = 'none';
+                }
+            });
+        });
+
+        // Pemicu Modal Loading
+        uploadForm.addEventListener('submit', function(e) {
+            // Lakukan validasi dulu
+            if (!folderSelect.value) {
+                alert('Silakan pilih folder tujuan terlebih dahulu.');
+                e.preventDefault(); // Hentikan submit jika tidak valid
+                return;
+            }
+            // Jika valid, tampilkan pop-up loading
+            loadingModal.show();
+        });
+    });
+</script>
+{% endblock %}

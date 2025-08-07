@@ -1,0 +1,128 @@
+{% extends 'dashboard_layout.html' %}
+{% block title %}Dashboard Mahasiswa{% endblock %}
+
+
+{% block dashboard_content %}
+    <div id="mainDashboardContent">
+    <div class="row g-4">
+        <div class="col-md-4"><div class="stat-card"><div class="icon bg-primary-light"><i class="bi bi-cloud-arrow-up-fill"></i></div><div><h6 class="text-muted fw-semibold">File Diunggah</h6><h4 class="fw-bold mb-0">{{ stats.my_uploads }}</h4></div></div></div>
+        <div class="col-md-4"><div class="stat-card"><div class="icon bg-success-light"><i class="bi bi-file-earmark-check-fill"></i></div><div><h6 class="text-muted fw-semibold">File Dapat Diakses</h6><h4 class="fw-bold mb-0">{{ stats.accessible_files }}</h4></div></div></div>
+        <div class="col-md-4"><div class="stat-card"><div class="icon bg-warning-light"><i class="bi bi-graph-up"></i></div><div><h6 class="text-muted fw-semibold">Aktivitas</h6><h4 class="fw-bold mb-0">{{ stats.activities }}</h4></div></div></div>
+    </div>
+
+    <div class="mt-5">
+        <ul class="nav nav-tabs content-tabs mb-3">
+            <li class="nav-item"><a class="nav-link active" id="filesTab" href="#">File Terbaru Saya</a></li>
+            <li class="nav-item"><a class="nav-link" id="foldersTab" href="#">Folder</a></li>
+        </ul>
+        <div id="filesContent">
+            {% if recent_files %}<div class="list-group">{% for file in recent_files %}<a href="{{ url_for('view_file', filepath=file.file_path) }}" target="_blank" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 d-flex align-items-center"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>{{ file.filename }}</h6><small class="text-muted">{{ file.timestamp | strftime('%d %b %Y, %H:%M') }}</small></div><p class="mb-1 text-muted small">Diunggah oleh: <strong>{% if file.uploader_email == session.email %}Anda{% else %}{{ file.uploader_email }}{% endif %}</strong> ke folder: <strong>{{ file.folder }}</strong></p></a>{% endfor %}</div>{% else %}<div class="text-center p-5 bg-light rounded"><p class="mb-0">Belum ada file.</p></div>{% endif %}
+        </div>
+        <div id="foldersContent" style="display: none;">
+            <div class="row g-3">{% if folders %}{% for folder in folders %}<div class="col-md-6 col-lg-4 col-xl-3"><a href="{{ url_for('view_folder_content', folder_name=folder) }}" class="text-decoration-none"><div class="card shadow-sm h-100 folder-item"><div class="card-body"><h5 class="card-title text-truncate"><i class="bi bi-folder-fill me-2 text-primary"></i>{{ folder }}</h5></div></div></a></div>{% endfor %}{% else %}<div class="col-12"><div class="alert alert-info text-center">Belum ada folder.</div></div>{% endif %}</div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Menambahkan kursor pointer dan transisi halus untuk animasi */
+    .folder-item {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Animasi hover: item terangkat dan diberi bayangan lembut */
+    .folder-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        /* z-index diperlukan agar bayangan tidak tertimpa item di bawahnya */
+        z-index: 2;
+        position: relative;
+        color: #007bff; /* Ganti warna teks saat hover */
+    }
+</style>
+    <div id="uploadContent" style="display: none;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="card-title text-center fw-bold mb-4">Upload Surat</h2>
+                    <p class="text-center text-muted mb-4">Sebagai mahasiswa, Anda hanya bisa mengunggah file ke folder yang sudah ada dan file akan otomatis ditandai sebagai "Surat Masuk".</p>
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" action="{{ url_for('mahasiswa_upload') }}">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">1. Pilih Folder Tujuan</h5>
+                        <div class="mb-3">
+                            <select class="form-select" id="folder_select" name="folder_name" required>
+                                <option value="" disabled selected>-- Wajib Pilih Folder --</option>
+                                {% if existing_folders %}{% for folder in existing_folders %}<option value="{{ folder }}">{{ folder }}</option>{% endfor %}{% else %}<option value="" disabled>Belum ada folder.</option>{% endif %}
+                            </select>
+                        </div>
+                        <hr class="my-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">2. Detail File</h5>
+                        <div class="mb-3"><label class="form-label fw-bold">Jenis Surat</label><p><span class="badge bg-primary fs-6">Surat Masuk</span></p><input type="hidden" name="letter_type" value="surat_masuk"></div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hak Akses File</label>
+                            <div class="toggle-switch">
+                                <input type="radio" id="accessPublik" name="access_level" value="publik" checked>
+                                <label for="accessPublik">Publik</label>
+
+                                <input type="radio" id="accessPrivat" name="access_level" value="privat">
+                                <label for="accessPrivat">Privat</label>
+                            </div>
+                        </div>
+                        <div class="card p-3 mb-3" id="dosenChecklistContainer" style="display: none;">
+                            <label class="form-label fw-bold">Pilih Dosen yang Diberi Akses:</label>
+                            {% if dosen_list %}{% for dosen in dosen_list %}<div class="form-check"><input class="form-check-input" type="checkbox" name="allowed_dosen" value="{{ dosen.email }}"><label class="form-check-label">{{ dosen.email }}</label></div>{% endfor %}{% else %}<p class="text-muted mb-0">Tidak ada Dosen terdaftar.</p>{% endif %}
+                        </div>
+                        <div class="mb-4"><label for="file" class="form-label fw-bold">Pilih File untuk Diunggah</label><input class="form-control" type="file" id="file" name="file" required></div>
+                        <div class="d-grid mt-4"><button type="submit" class="btn btn-primary btn-lg">Upload dan Catat ke Blockchain</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === Selektor untuk elemen-elemen utama ===
+    const mainDashboardContent = document.getElementById('mainDashboardContent');
+    const uploadContent = document.getElementById('uploadContent');
+    const filesTab = document.getElementById('filesTab');
+    const foldersTab = document.getElementById('foldersTab');
+    const uploadForm = document.getElementById('uploadForm');
+    const dosenChecklistContainer = document.getElementById('dosenChecklistContainer');
+
+    // === Logika untuk menampilkan konten awal berdasarkan URL ===
+    if ("{{ show_view }}" === 'upload') {
+        mainDashboardContent.style.display = 'none';
+        uploadContent.style.display = 'block';
+    }
+
+    // === Event listener untuk Tab File & Folder ===
+    filesTab.addEventListener('click', e => { e.preventDefault(); document.getElementById('filesContent').style.display = 'block'; document.getElementById('foldersContent').style.display = 'none'; filesTab.classList.add('active'); foldersTab.classList.remove('active'); });
+    foldersTab.addEventListener('click', e => { e.preventDefault(); document.getElementById('filesContent').style.display = 'none'; document.getElementById('foldersContent').style.display = 'block'; foldersTab.classList.add('active'); filesTab.classList.remove('active'); });
+    
+    // === Logika untuk Form Upload (Menggunakan Event Delegation) ===
+
+    // 1. Tambahkan satu listener ke formulir
+    uploadForm.addEventListener('change', function(event) {
+        // 2. Cek apakah elemen yang berubah adalah radio button 'access_level'
+        if (event.target.name === 'access_level') {
+            // 3. Jalankan logika berdasarkan nilai radio button yang dipilih
+            dosenChecklistContainer.style.display = event.target.value === 'privat' ? 'block' : 'none';
+        }
+    });
+
+    // 4. Event listener untuk submit form (tidak berubah)
+    uploadForm.addEventListener('submit', e => {
+        const folderSelect = document.getElementById('folder_select');
+        if (!folderSelect.value) { 
+            alert('Silakan pilih folder tujuan.'); 
+            e.preventDefault(); 
+            return; 
+        }
+        const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        loadingModal.show();
+    });
+});
+</script>
+{% endblock %}

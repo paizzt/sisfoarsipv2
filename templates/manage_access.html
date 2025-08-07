@@ -1,0 +1,43 @@
+{% extends 'dashboard_layout.html' %}
+{% block title %}Kelola Akses{% endblock %}
+
+{% block dashboard_content %}
+    <h1 class="h2 fw-bold mb-4">Kelola Akses File & Folder Privat</h1>
+    <p class="text-muted mb-4">Hanya file dan folder yang diatur sebagai "privat" yang akan muncul di sini.</p>
+
+    <h3 class="h4">Akses Folder Privat</h3>
+    {% if private_folders %}
+        <div class="list-group mb-4">
+        {% for folder, data in private_folders.items() %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><i class="bi bi-folder-fill me-2"></i>{{ folder }}</h5>
+                    <a href="{{ url_for('edit_access', item_type='folder', item_name=folder) }}" class="btn btn-sm btn-outline-primary">Edit Akses</a>
+                </div>
+                <p class="mb-1">Dibuat oleh: {{ data.creator_email }}</p>
+                <small class="text-muted">Akses diberikan kepada: {{ data.allowed_users|join(', ') if data.allowed_users else 'Tidak ada' }}</small>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Tidak ada folder privat yang ditemukan.</div>
+    {% endif %}
+
+    <h3 class="h4 mt-5">Akses File Privat</h3>
+    {% if private_files %}
+        <div class="list-group">
+        {% for file in private_files %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><i class="bi bi-file-earmark-text-fill me-2"></i>{{ file.filename }}</h5>
+                    <a href="{{ url_for('edit_access', item_type='file', item_name=file.filename) }}" class="btn btn-sm btn-outline-primary">Edit Akses</a>
+                </div>
+                <p class="mb-1">Di folder: <strong>{{ file.folder }}</strong> | Diunggah oleh: {{ file.uploader_email }}</p>
+                <small class="text-muted">Akses diberikan kepada: {{ file.allowed_dosen_file|join(', ') if file.allowed_dosen_file else 'Tidak ada' }}</small>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Tidak ada file privat yang ditemukan.</div>
+    {% endif %}
+{% endblock %}

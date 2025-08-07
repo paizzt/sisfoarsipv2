@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+
+{% block title %}Cari File Arsip{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Cari File Arsip</h1>
+            <p class="text-muted mb-0">Masukkan kata kunci untuk mencari file berdasarkan nama, folder, atau pengunggah.</p>
+        </div>
+        <a href="{{ url_for(session.role + '_dashboard') }}" class="btn btn-secondary">← Kembali ke Dashboard</a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="post">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg" placeholder="Ketik kata kunci di sini..." name="query" value="{{ query or '' }}" required>
+                    <button class="btn btn-primary" type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-2" viewBox="0 0 16 16">
+                          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                        Cari
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if query is defined %}
+    <div class="card shadow-sm border-0">
+        <div class="card-header">
+            Hasil pencarian untuk: <strong>"{{ query }}"</strong>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nama File</th>
+                            <th scope="col">Jenis Surat</th>
+                            <th scope="col">Folder</th>
+                            <th scope="col">Pengunggah</th>
+                            <th scope="col">Waktu Unggah (UTC)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if results %}
+                            {% for file in results %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ file.filename }}</td>
+                                <td>
+                                    {% if file.letter_type == 'surat_masuk' %}
+                                        <span class="badge bg-primary">Surat Masuk</span>
+                                    {% elif file.letter_type == 'surat_keluar' %}
+                                        <span class="badge bg-success">Surat Keluar</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ file.folder }}</td>
+                                <td>{{ file.uploader_email }}</td>
+                                <td>{{ file.timestamp | strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Tidak ada file yang cocok dengan kriteria pencarian Anda.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

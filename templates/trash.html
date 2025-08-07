@@ -1,0 +1,52 @@
+{% extends 'dashboard_layout.html' %}
+{% block title %}Sampah{% endblock %}
+
+{% block dashboard_content %}
+    <h1 class="h2 fw-bold mb-4">Sampah</h1>
+    <p class="text-muted mb-4">Item di sini akan dihapus permanen setelah 30 hari. Anda dapat memulihkannya sebelum itu.</p>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nama Item</th>
+                            <th>Tipe</th>
+                            <th>Dihapus oleh</th>
+                            <th>Waktu Dihapus</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if trashed_items %}
+                            {% for item in trashed_items %}
+                            <tr>
+                                <td>
+                                    {% if item.item_type == 'folder' %}
+                                        <i class="bi bi-folder-fill me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-file-earmark-text-fill me-2"></i>
+                                    {% endif %}
+                                    {{ item.item_name }}
+                                </td>
+                                <td><span class="badge bg-secondary">{{ item.item_type|capitalize }}</span></td>
+                                <td>{{ item.trasher_email }}</td>
+                                <td>{{ item.timestamp | strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="text-center">
+                                    <a href="#" class="btn btn-sm btn-outline-success">Pulihkan</a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger disabled">Hapus Permanen</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Sampah kosong.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

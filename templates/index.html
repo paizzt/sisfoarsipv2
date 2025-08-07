@@ -1,0 +1,59 @@
+{% extends 'layout.html' %}
+
+{% block title %}Selamat Datang di SISFOARSIP{% endblock %}
+
+{% block content %}
+<style>
+    /* Mengatur ulang gaya layout HANYA untuk halaman ini */
+    main.container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        max-width: 100% !important; /* Menghapus batasan lebar container */
+        height: 100vh; /* KUNCI: Memaksa area konten utama untuk memenuhi tinggi layar */
+    }
+
+    /* Memastikan wadah flex-container bekerja di dalam main yang sudah full-height */
+    .full-screen-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Menengahkan konten utama */
+        align-items: center;
+        height: 100%; /* Memenuhi tinggi dari parent (main.container) */
+        position: relative;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+
+    .footer-bottom {
+        position: absolute;
+        bottom: 20px;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .highlight-text {
+        color: var(--bs-primary);
+    }
+</style>
+
+<div class="full-screen-container">
+    
+    <div class="text-center">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo SISFOARSIP" class="mb-4" height="80">
+        <h1 class="display-4 fw-bold text-dark">Sistem Pengarsipan File</h1>
+        <h1 class="display-4 fw-bold highlight-text mb-3">Sistem Informasi</h1>
+        <p class="lead text-muted mb-4">Website Pengarsipan Program Studi Sistem Informasi UIN Alauddin Makassar Berbasis Blockchain</p>
+        <div>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 me-2">Masuk</a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-lg px-4">Daftar</a>
+        </div>
+    </div>
+    
+    <footer class="footer-bottom">
+        Copyright © Program Studi Sistem Informasi | Fakultas Sains & Teknologi | Universitas Islam Negeri Alauddin Makassar
+    </footer>
+
+</div>
+{% endblock %}
