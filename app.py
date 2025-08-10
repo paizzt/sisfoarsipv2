@@ -22,8 +22,8 @@ app.secret_key = 'ganti-dengan-kunci-rahasia-yang-sangat-aman-dan-unik'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'emailanda@gmail.com')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'password_aplikasi_anda')
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'martevenfaisal@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'hjmg bbsk vvua pqnz')
 app.config['MAIL_DEFAULT_SENDER'] = ('SISFOARSIP', app.config['MAIL_USERNAME'])
 
 mail = Mail(app)
@@ -117,18 +117,81 @@ def get_all_item_states():
 
     return item_states
 
-def has_file_access(file_record):
-    """Memeriksa apakah pengguna saat ini memiliki akses ke file."""
+def has_file_access(file_record, all_items):
+    """
+    Memeriksa apakah pengguna saat ini memiliki akses ke file, dengan mempertimbangkan
+    hak akses folder induknya.
+    """
     if not file_record:
         return False
-    
+
+    # Admin selalu memiliki akses penuh
+    if session.get('role') == 'admin':
+        return True
+
+    # --- Logika Baru: Periksa Folder Induk ---
+    folder_name = file_record.get('folder')
+    folder_record = None
+    if folder_name:
+        # Cari data folder dari semua item yang ada
+        for name, state in all_items.items():
+            if state.get('status') == 'active' and state['data'].get('type') == 'folder_creation' and name == folder_name:
+                folder_record = state['data']
+                break
+
+    # Jika folder induknya privat, maka file ini juga dianggap privat
+    if folder_record and folder_record.get('folder_access') == 'privat':
+        # Akses hanya diberikan jika pengguna adalah pengunggah atau dosen yang diizinkan
+        is_allowed_dosen = session.get('role') == 'dosen' and session.get('email') in file_record.get('allowed_dosen_file', [])
+        is_uploader = session.get('email') == file_record.get('uploader_email')
+        return is_allowed_dosen or is_uploader
+
+    # --- Logika Lama (jika folder publik atau tidak terdefinisi) ---
     is_public = file_record.get('file_access') == 'publik'
-    is_admin = session['role'] == 'admin'
-    is_allowed_dosen = session['role'] == 'dosen' and session['email'] in file_record.get('allowed_dosen_file', [])
-    is_own_private_file = session['role'] == 'mahasiswa' and session['email'] == file_record.get('uploader_email') and not is_public
+    if is_public:
+        return True
 
-    return is_admin or is_public or is_allowed_dosen or is_own_private_file
+    # Jika file itu sendiri privat
+    is_allowed_dosen = session.get('role') == 'dosen' and session.get('email') in file_record.get('allowed_dosen_file', [])
+    is_own_private_file = session.get('role') == 'mahasiswa' and session.get('email') == file_record.get('uploader_email')
 
+    return is_allowed_dosen or is_own_private_file
+
+def has_folder_access(folder_name, folder_record, all_items):
+    """
+    Memeriksa apakah pengguna saat ini memiliki akses ke folder.
+    Akses diberikan jika:
+    1. Pengguna adalah Admin.
+    2. Folder bersifat publik.
+    3. Pengguna (Dosen) secara eksplisit diberi izin akses ke folder privat tersebut.
+    4. Pengguna (Dosen/Mahasiswa) memiliki akses ke setidaknya satu file di dalam folder tersebut.
+    """
+    if not folder_name:
+        return False
+
+    # 1. Admin selalu punya akses
+    if session.get('role') == 'admin':
+        return True
+        
+    # 2. Jika folder tercatat sebagai publik, semua orang punya akses
+    if folder_record and folder_record.get('folder_access') == 'publik':
+        return True
+
+    # 3. Cek apakah Dosen diberi izin akses langsung ke folder privat
+    if session.get('role') == 'dosen' and folder_record:
+        if session.get('email') in folder_record.get('allowed_dosen_folder', []):
+            return True
+
+    # 4. Cek apakah pengguna punya akses ke salah satu file di dalamnya
+    for item_name, state in all_items.items():
+        if state['status'] == 'active' and state['data'].get('type') == 'file_upload':
+            if state['data'].get('folder') == folder_name:
+                if has_file_access(state['data'], all_items):
+                    return True
+    
+    # Jika semua kondisi gagal, tolak akses
+    return False
+    
 # =================================================================
 # RUTE OTENTIKASI
 # =================================================================
@@ -418,13 +481,31 @@ def edit_folder():
 @roles_required('admin', 'dosen', 'mahasiswa')
 def view_folders():
     item_states = get_all_item_states()
-    active_folders = set()
+    
+    # 1. Kumpulkan semua nama folder unik dan data folder
+    all_folder_names = set()
+    folder_data_map = {}
     for name, state in item_states.items():
-        if state['status'] == 'active' and state['data'].get('type') in ['folder_creation', 'file_upload']:
-            active_folders.add(state['data'].get('folder_name') or state['data'].get('folder'))
-    sorted_folders = sorted(list(active_folders))
-    return render_template('view_folders.html', folders=sorted_folders)
+        if state['status'] == 'active':
+            if state['data'].get('type') == 'folder_creation':
+                all_folder_names.add(name)
+                folder_data_map[name] = state['data']
+            elif state['data'].get('type') == 'file_upload' and state['data'].get('folder'):
+                all_folder_names.add(state['data']['folder'])
 
+    # 2. Filter folder berdasarkan hak akses
+    accessible_folders = []
+    for folder_name in all_folder_names:
+        # Dapatkan catatan pembuatan folder (jika ada) untuk memeriksa status publik/privatnya
+        folder_record = folder_data_map.get(folder_name)
+        
+        # Gunakan fungsi yang sudah diperbarui untuk memeriksa akses
+        if has_folder_access(folder_name, folder_record, item_states):
+            accessible_folders.append(folder_name)
+            
+    sorted_folders = sorted(accessible_folders)
+    return render_template('view_folders.html', folders=sorted_folders)
+    
 @app.route('/folder/<folder_name>')
 @login_required
 @roles_required('admin', 'dosen', 'mahasiswa')
@@ -433,11 +514,12 @@ def view_folder_content(folder_name):
     files_in_folder = []
     for name, state in item_states.items():
         if state['status'] == 'active' and state['data'].get('type') == 'file_upload' and state['data'].get('folder') == folder_name:
-            if has_file_access(state['data']):
+            # Diperbarui: Kirim item_states ke fungsi
+            if has_file_access(state['data'], item_states):
                 file_info = state['data'].copy()
                 file_info['timestamp'] = state.get('timestamp')
                 files_in_folder.append(file_info)
-                
+
     sorted_files = sorted(files_in_folder, key=lambda x: x.get('timestamp', 0), reverse=True)
     return render_template('view_files.html', files=sorted_files, folder_name=folder_name)
 
@@ -669,6 +751,10 @@ def save_access():
         'type': 'access_update'
     }
 
+    # Menambahkan data hak akses folder agar lebih konsisten
+    if item_type == 'folder':
+        access_update_data['folder_access'] = 'privat'
+
     previous_block = blockchain.last_block
     previous_hash = blockchain.hash(previous_block)
     new_block = blockchain.new_block(12345, previous_hash)
@@ -787,7 +873,7 @@ def dosen_dashboard():
 
     for name, state in item_states.items():
         if state['status'] == 'active':
-            if state['data'].get('type') == 'file_upload' and has_file_access(state['data']):
+            if state['data'].get('type') == 'file_upload' and has_file_access(state['data'], item_states):
                 file_info = state['data'].copy()
                 file_info['timestamp'] = state.get('timestamp')
                 accessible_files.append(file_info)
@@ -863,7 +949,7 @@ def mahasiswa_dashboard():
                 if state['data'].get('uploader_email') == session['email']:
                     my_uploads += 1
                 
-                if has_file_access(state['data']):
+                if has_file_access(state['data'], item_states):
                     file_info = state['data'].copy()
                     file_info['timestamp'] = state.get('timestamp')
                     accessible_files.append(file_info)
